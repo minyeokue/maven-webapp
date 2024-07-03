@@ -30,7 +30,7 @@ pipeline {
                     tomcat9(
                         credentialsId: 'tomcat-admin',
                         url: 'http://192.168.56.102:8080'
-                        )
+                    )
                 ],
                 contextPath: null,
                 war: 'target/hello-world.war'
