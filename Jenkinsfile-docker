@@ -34,7 +34,7 @@ pipeline {
             agent any
             steps {
                 sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:latest'
-                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}'
+                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:$BUILD_NUMBER'
             }
         }
         stage('Publish Docker Image to Git Registry') {
@@ -43,7 +43,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://ghcr.io', 'github-token') {
                         docker.build('ghcr.io/minyeokue/tomcat-hello:latest').push()
-                        docker.build('ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}').push()
+                        docker.build('ghcr.io/minyeokue/tomcat-hello:$BUILD_NUMBER').push()
                     }
                 }
             }
