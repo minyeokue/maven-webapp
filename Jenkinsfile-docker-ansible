@@ -47,11 +47,11 @@ pipeline {
                 }
             }
         }
-        stage('Docker Container Deploy to Docker out of Docker with Ansible') {
+        stage('Docker Container Deploy to Docker Out of Docker with Ansible') {
             agent {
                 docker {
-                    image: 'ghcr.io/c1t1d0s7/jenkins-ansible-agent'
-                    args: '-u 0:0 -e DOCKER_HOST=tcp://192.168.56.104:2375'
+                    image 'ghcr.io/c1t1d0s7/jenkins-ansible-agent'
+                    args '-u 0:0 -e DOCKER_HOST=tcp://192.168.56.104:2375'
                 }
             }
             steps {
