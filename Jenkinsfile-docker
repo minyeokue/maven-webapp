@@ -44,7 +44,6 @@ pipeline {
                         docker.build('ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}').push()
                     }
                 }
-                with
             }
         }
         stage('Docker Container Deploy to Docker out of Docker') {
