@@ -27,24 +27,23 @@ pipeline {
         stage('Build Docker Image') {
             agent any
             steps {
-                sh 'docker image build -t tomcat-hello .'
+                sh 'docker image build -t webapp .'
             }
         }
         stage('Tag Docker Image') {
             agent any
             steps {
-                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:latest'
-                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:$BUILD_NUMBER'
+                sh 'docker image tag tomcat-hello minyeokue/webapp:latest'
+                sh 'docker image tag tomcat-hello minyeokue/webapp:$BUILD_NUMBER'
             }
         }
-        stage('Publish Docker Image to Git Registry') {
+        stage('Docker Image Push to Docker Hub') {
             agent any
             steps {
-                script {
-                    docker.withRegistry('https://ghcr.io', 'github-token') {
-                        docker.build('ghcr.io/minyeokue/tomcat-hello:latest').push()
-                        docker.build('ghcr.io/minyeokue/tomcat-hello:$BUILD_NUMBER').push()
-                    }
+                withDockerRegistry(credentialsId: 'docker-hub-token',
+                url: 'https://index.docker.io/v1/') {
+                    sh 'docker image push minyeokue/webapp:latest'
+                    sh 'docker image push minyeokue/webapp:$BUILD_NUMBER'
                 }
             }
         }
@@ -53,7 +52,7 @@ pipeline {
                 docker { image 'docker:dind' }
             }
             steps {
-                sh 'docker -H tcp://192.168.56.104:2375 container run --detach --name tomcat_hello -p 80:8080 ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}'
+                sh 'docker -H tcp://192.168.56.104:2375 container run --detach --name webapp -p 80:8080 minyeokue/webapp:$BUILD_NUMBER'
             }
         }
     }
