@@ -1,0 +1,62 @@
+pipeline {
+    agent none
+
+    stages {
+        stage('Checkout') {
+            agent any
+            steps {
+                git branch: 'main', url: 'https://github.com/minyeokue/maven-webapp.git'
+            }
+        }
+        stage('Build') {
+            agent {
+                docker 'maven:3-openjdk-17'
+            }
+            steps {
+                sh 'mvn package -DskipTests=true'
+            }
+        }
+        stage('Test') {
+            agent {
+                docker 'maven:3-openjdk-17'
+            }
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Build Docker Image') {
+            agent any
+            steps {
+                sh 'docker image build -t webapp .'
+            }
+        }
+        stage('Tag Docker Image') {
+            agent any
+            steps {
+                sh 'docker image tag tomcat-hello minyeokue/webapp:latest'
+                sh 'docker image tag tomcat-hello minyeokue/webapp:$BUILD_NUMBER'
+            }
+        }
+        stage('Docker Image Push to Docker Hub') {
+            agent any
+            steps {
+                withDockerRegistry(credentialsId: 'docker-hub-token',
+                url: 'https://index.docker.io/v1/') {
+                    sh 'docker image push minyeokue/webapp:latest'
+                    sh 'docker image push minyeokue/webapp:$BUILD_NUMBER'
+                }
+            }
+        }
+        stage('Docker Container Deploy to Docker out of Docker with Ansible') {
+            agent {
+                docker {
+                    image: 'ghcr.io/c1t1d0s7/jenkins-ansible-agent'
+                    args: '-u 0:0 -e DOCKER_HOST=tcp://192.168.56.104:2375'
+                }
+            }
+            steps {
+                ansiblePlaybook(playbook: 'docker-container-deploy.yaml')
+            }
+        }
+    }
+}
