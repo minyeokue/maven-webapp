@@ -1,0 +1,59 @@
+pipeline {
+    agent none
+
+    stages {
+        stage('Checkout') {
+            agent any
+            
+            steps {
+                git branch: 'main', url: 'https://github.com/minyeokue/maven-webapp.git'
+            }
+        }
+        stage('Build') {
+            agent any
+            steps {
+                sh 'mvn package -DskipTests=true'
+            }
+        }
+        stage('Test') {
+            agent any
+            steps {
+                sh 'mvc test'
+            }
+        }
+        stage('Build Docker Image') {
+            agent any
+            steps {
+                sh 'docker image build -t tomcat-hello .'
+            }
+        }
+        stage('Tag Docker Image') {
+            agent any
+
+            steps {
+                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:latest'
+                sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}'
+            }
+        }
+        stage('Publish Docker Image to Git Registry') {
+            agent any
+            steps {
+                script {
+                    docker.withRegistry('https://ghcr.io', 'github-token') {
+                        docker.build('ghcr.io/minyeokue/tomcat-hello:latest').push()
+                        docker.build('ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}').push()
+                    }
+                }
+                with
+            }
+        }
+        stage('Docker Container Deploy to Docker out of Docker') {
+            agent {
+                docker { image 'docker:dind' }
+            }
+            steps {
+                sh 'docker -H tcp://192.168.56.104:2375 container run --detach --name tomcat_hello -p 80:8080 ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}'
+            }
+        }
+    }
+}
