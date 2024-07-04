@@ -4,7 +4,6 @@ pipeline {
     stages {
         stage('Checkout') {
             agent any
-            
             steps {
                 git branch: 'main', url: 'https://github.com/minyeokue/maven-webapp.git'
             }
@@ -18,7 +17,7 @@ pipeline {
         stage('Test') {
             agent any
             steps {
-                sh 'mvc test'
+                sh 'mvn test'
             }
         }
         stage('Build Docker Image') {
@@ -29,7 +28,6 @@ pipeline {
         }
         stage('Tag Docker Image') {
             agent any
-
             steps {
                 sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:latest'
                 sh 'docker image tag tomcat-hello ghcr.io/minyeokue/tomcat-hello:${env.BUILD_NUMBER}'
