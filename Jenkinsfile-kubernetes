@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: maven
-    image: maven:3-openjdk-11
+    image: maven:3-openjdk-17
     command: [ 'sleep' ]
     args: [ 'infinity' ]
   - name: git
@@ -54,7 +54,7 @@ spec:
                 }
             }
         }
-        stage('Build & Tag & Push Docker Image') {
+        stage('Build & Tag & Push Docker Image to Dockerhub') {
             steps {
                 container('kaniko') {
                     sh 'executor --context=dir://$WORKSPACE --destination=minyeokue/webapp:$BUILD_NUMBER --destination=minyeokue/webapp:latest'
